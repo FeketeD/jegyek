@@ -14,11 +14,9 @@ namespace jegyekAPI
         public Connect()
         {
             Host = "localhost";
-            DbName = "db_user";
+            DbName = "jegyek";
             UserName = "root";
             Password = "";
-
-            //ConnectionString = "Host="+Host+";Database="+DbName+";User="+UserName+";Password="+Password+";SslMode=none";
 
             ConnectionString = $"Host={Host};Database={DbName};User={UserName};Password={Password};SslMode=None";
 

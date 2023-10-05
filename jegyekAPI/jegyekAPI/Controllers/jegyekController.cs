@@ -10,6 +10,120 @@ namespace jegyekAPI.Controllers
     [ApiController]
     public class jegyekController : ControllerBase
     {
+        Connect connect = new();
+        private List<JegyekDto> jegyek = new List<JegyekDto>();
 
+        [HttpGet]
+        public ActionResult<IEnumerable<JegyekDto>> Get()
+        {
+            try
+            {
+                connect.connection.Open();
+
+                string sql = "SELECT * FROM jegyek";
+
+                MySqlCommand cmd = new MySqlCommand(sql, connect.connection);
+
+                MySqlDataReader reader = cmd.ExecuteReader();
+
+                while (reader.Read())
+                {
+                    var result = new JegyekDto(
+                            reader.GetGuid("Id"),
+                            reader.GetInt32("Jegy"),
+                            reader.GetString("Desc"),
+                            reader.GetDateTime("Created")
+                        );
+                    jegyek.Add(result);
+                }
+
+                connect.connection.Close();
+                return StatusCode(200, jegyek);
+            }
+            catch (Exception e)
+            {
+
+                return BadRequest(e.Message);
+            }
+        }
+
+        [HttpGet("{Id}")]
+        public ActionResult<JegyekDto> Get(Guid Id)
+        {
+
+            try
+            {
+                connect.connection.Open();
+
+                string sql = "SELECT * FROM jegyek WHERE Id = @ID";
+
+                MySqlCommand cmd = new MySqlCommand(sql, connect.connection);
+
+                cmd.Parameters.AddWithValue("Id", Id);
+
+                MySqlDataReader reader = cmd.ExecuteReader();
+
+                if (reader.Read())
+                {
+                    var result = new JegyekDto(
+                            reader.GetGuid("Id"),
+                            reader.GetInt32("Jegy"),
+                            reader.GetString("Desc"),
+                            reader.GetDateTime("Created")
+                        );
+                    connect.connection.Close();
+                    return StatusCode(200, result);
+                }
+                else
+                {
+                    Exception e = new();
+                    connect.connection.Close();
+                    return StatusCode(404, e.Message);
+                }
+            }
+            catch (Exception e)
+            {
+
+                return BadRequest(e.Message);
+            }
+        }
+
+        [HttpPost]
+        public ActionResult<Jegyek> Post(CreateJegyekDto createJegy)
+        {
+
+            var jegyek = new Jegyek
+            {
+                Id = Guid.NewGuid(),
+                Jegy = createJegy.Jegy,
+                Desc = createJegy.Desc,
+                Created = DateTimeOffset.Now
+            };
+
+            try
+            {
+                connect.connection.Open();
+
+                string sql = $"INSERT INTO `jegyek`(`Id`, `Jegy`, `Desc`, `Created`) VALUES (@Id,@Jegy,@Desc,@Created)";
+
+
+                MySqlCommand cmd = new MySqlCommand(sql, connect.connection);
+
+                cmd.Parameters.AddWithValue("Id", jegyek.Id);
+                cmd.Parameters.AddWithValue("Jegy", jegyek.Jegy);
+                cmd.Parameters.AddWithValue("Desc", jegyek.Desc);
+                cmd.Parameters.AddWithValue("Created", jegyek.Created);
+
+                cmd.ExecuteNonQuery();
+
+                connect.connection.Close();
+
+                return StatusCode(201, jegyek);
+            }
+            catch
+            {
+                return BadRequest();
+            }
+        }
     }
 }
