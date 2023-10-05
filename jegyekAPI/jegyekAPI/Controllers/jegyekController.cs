@@ -125,5 +125,58 @@ namespace jegyekAPI.Controllers
                 return BadRequest();
             }
         }
+        [HttpDelete]
+
+        public ActionResult Delete(Guid Id)
+        {
+            try
+            {
+                connect.connection.Open();
+
+                string sql = "DELETE FROM jegyek WHERE Id = @Id";
+
+                MySqlCommand cmd = new MySqlCommand(sql, connect.connection);
+
+                cmd.Parameters.AddWithValue("Id", Id);
+
+                MySqlDataReader reader = cmd.ExecuteReader();
+                connect.connection.Close();
+
+                return StatusCode(200, $"Sikeresen törölted az adatbázisból a(z) {Id} ID val ellátott jegyet.");
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
+        [HttpPut("{Id}")]
+        public ActionResult<JegyekDto> Put(UpdateJegyekDto updateJegyek, Guid Id)
+        {
+            try
+            {
+                connect.connection.Open();
+
+                string sql = "UPDATE `jegyek` SET `Jegy`=@Jegy,`Desc`=@Desc WHERE Id=@Id";
+
+                MySqlCommand cmd = new MySqlCommand(sql, connect.connection);
+
+                cmd.Parameters.AddWithValue("Jegy", updateJegyek.Jegy);
+                cmd.Parameters.AddWithValue("Desc", updateJegyek.Desc);
+
+                cmd.Parameters.AddWithValue("Id", Id);
+
+                cmd.ExecuteNonQuery();
+                connect.connection.Close();
+
+                return StatusCode(200);
+
+            }
+            catch (Exception e)
+            {
+
+                return BadRequest(e.Message);
+            }
+        }
     }
 }
